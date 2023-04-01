@@ -1,32 +1,31 @@
-import React, { useEffect, useState, useMemo } from "react";
+import React, { useEffect, useState } from "react";
 import "../Home/Home.css";
 import { getAllBook } from "../Services/BookService";
 import DropDown from "./DropDown";
 import Header from "./Header";
 import { useNavigate } from "react-router-dom";
-import BookDescription from "../BookDescription/BookDescription";
 import Rating from "../Rating/Rating";
 // import Pagination from "../Pagination/Pagination";
 
 export default function Home() {
   const [books, setBooks] = useState([]);
-  const [currentPage, setCurrentPage] = useState(1);
+  // const [currentPage, setCurrentPage] = useState(1);
   const navigation = useNavigate();
   useEffect(() => {
     getAllBook()
       .then((res) => {
         console.log(res);
-        setBooks(res.data.data.data);
+        setBooks(res.data.data);
       })
       .catch((err) => console.log(err));
   }, []);
 
-  let PageSize = 12;
-  const currentTableData = useMemo(() => {
-    const firstPageIndex = (currentPage - 1) * PageSize;
-    const lastPageIndex = firstPageIndex + PageSize;
-    return books.slice(firstPageIndex, lastPageIndex);
-  });
+  // let PageSize = 12;
+  // const currentTableData = useMemo(() => {
+  //   const firstPageIndex = (currentPage - 1) * PageSize;
+  //   const lastPageIndex = firstPageIndex + PageSize;
+  //   return books.slice(firstPageIndex, lastPageIndex);
+  // });
 
   const showBookDescription = (book) => {
     navigation("/bookDescription", {
@@ -97,7 +96,7 @@ export default function Home() {
               </div>
               <div
                 style={{
-                  width: "99%",
+                  width: "87%",
                   height: "5.5em",
                   display: "flex",
                   flexDirection: "column",
@@ -105,6 +104,7 @@ export default function Home() {
                   justifyContent: "space-evenly",
                   border: "2px solid #F5F5F5",
                   borderRadius: "0 0 5px 5px",
+                  padding: "1% 6%",
                 }}
               >
                 <div>{book.bookName}</div>

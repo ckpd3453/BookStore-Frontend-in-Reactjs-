@@ -4,6 +4,7 @@ import "./Signup.css";
 import TextField from "@mui/material/TextField";
 import { useNavigate } from "react-router-dom";
 import { userRegistration } from "../Services/UserService";
+import logo from "../../Assets/logo.png";
 
 export default function Signup() {
   const navigate = useNavigate();
@@ -92,7 +93,7 @@ export default function Signup() {
     <div className="login-container">
       <div className="logo-container">
         <img
-          src="https://public-v2links.adobecc.com/d096df37-ca37-4026-553f-8cfa6bec09ec/component?params=component_id%3A7b0eeb81-a918-4f41-9bc2-f508474e79ce&params=version%3A0&token=1679840879_da39a3ee_91db4024ecb33be16199f599f9b92b6672009811&api_key=CometServer1"
+          src={logo}
           alt=""
           srcset=""
           style={{

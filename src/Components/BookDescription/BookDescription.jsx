@@ -5,14 +5,47 @@ import "../BookDescription/BookDescription.css";
 import Rating from "../Rating/Rating";
 import StarIcon from "@mui/icons-material/Star";
 import FavoriteIcon from "@mui/icons-material/Favorite";
+import { addToCart, removeToCart } from "../Services/CartService";
 
 export default function BookDescription() {
   const location = useLocation();
   const [isWhishlisted, setIsWishlisted] = useState(false);
+  const [inStock, setInStock] = useState("ADD TO BAG");
   const book = location.state.book;
 
   const whishlist = () => {
     setIsWishlisted(!isWhishlisted);
+  };
+
+  const addToBag = () => {
+    if (book.quantity < 1) {
+      setInStock("Out Of Stock");
+    } else if (book.quantity === 1) {
+      setInStock("ADD TO BAG");
+    } else {
+      setInStock("Added To Bag");
+    }
+  };
+
+  const changeQuantity = (changeType) => {
+    console.log(changeType);
+    if (changeType === "decrement") {
+      removeToCart(book._id)
+        .then((res) => {
+          console.log(res);
+        })
+        .catch((err) => {
+          console.log(err);
+        });
+    } else if (changeType === "increment") {
+      addToCart(book._id)
+        .then((res) => {
+          console.log(res);
+        })
+        .catch((err) => {
+          console.log(err);
+        });
+    }
   };
 
   return (
@@ -54,19 +87,101 @@ export default function BookDescription() {
               marginTop: "8%",
             }}
           >
-            <div
-              style={{
-                height: "2em",
-                width: "46%",
-                backgroundColor: "#A03037",
-                color: "white",
-                display: "flex",
-                justifyContent: "center",
-                alignItems: "center",
-              }}
-            >
-              <div>ADD TO BAG</div>
-            </div>
+            {inStock === "Out Of Stock" && (
+              <div
+                style={{
+                  height: "2em",
+                  width: "46%",
+                  backgroundColor: "wheat",
+                  color: "red",
+                  display: "flex",
+                  justifyContent: "center",
+                  alignItems: "center",
+                }}
+                onClick={addToBag}
+              >
+                <div>
+                  <b> Out Of Stock </b>
+                </div>
+              </div>
+            )}
+
+            {inStock === "ADD TO BAG" && (
+              <div
+                style={{
+                  height: "2em",
+                  width: "46%",
+                  backgroundColor: "#A03037",
+                  color: "white",
+                  display: "flex",
+                  justifyContent: "center",
+                  alignItems: "center",
+                }}
+                onClick={addToBag}
+              >
+                <div>ADD TO BAG</div>
+              </div>
+            )}
+
+            {inStock === "Added To Bag" && (
+              <div
+                style={{
+                  height: "2em",
+                  width: "46%",
+                  color: "white",
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                }}
+                onClick={addToBag}
+              >
+                <div
+                  style={{
+                    border: "1px solid #DBDBDB",
+                    color: "#DBDBDB",
+                    width: "25%",
+                    height: "100%",
+                    display: "flex",
+                    justifyContent: "space-around",
+                    alignItems: "center",
+                    fontSize: "2.5em",
+                    borderRadius: "100%",
+                  }}
+                  onClick={() => changeQuantity("decrement")}
+                >
+                  <div style={{ marginBottom: "20%" }}>-</div>
+                </div>
+                <div
+                  style={{
+                    border: "1px solid #DBDBDB",
+                    width: "40%",
+                    height: "100%",
+                    display: "flex",
+                    justifyContent: "center",
+                    alignItems: "center",
+                    color: "#333232",
+                  }}
+                >
+                  {book.quantity}
+                </div>
+                <div
+                  style={{
+                    border: "1px solid #DBDBDB",
+                    width: "25%",
+                    height: "100%",
+                    display: "flex",
+                    justifyContent: "center",
+                    alignItems: "center",
+                    color: "#333232",
+                    fontSize: "2em",
+                    borderRadius: "100%",
+                  }}
+                  onClick={() => changeQuantity("increment")}
+                >
+                  <div style={{ marginBottom: "20%" }}>+</div>
+                </div>
+              </div>
+            )}
             {isWhishlisted ? (
               <div
                 style={{
@@ -198,6 +313,11 @@ export default function BookDescription() {
             </textarea>
           </div>
         </div>
+      </div>
+      <div className="home-footer">
+        <p style={{ marginLeft: "11%" }}>
+          copyright © 2020, Bookstore Private Limited. All Rights Reserved
+        </p>
       </div>
     </div>
   );
