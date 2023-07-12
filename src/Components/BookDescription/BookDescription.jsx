@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useLocation } from "react-router-dom";
 import Header from "../Home/Header";
 import "../BookDescription/BookDescription.css";
@@ -6,22 +6,73 @@ import Rating from "../Rating/Rating";
 import StarIcon from "@mui/icons-material/Star";
 import FavoriteIcon from "@mui/icons-material/Favorite";
 import { addToCart, removeToCart } from "../Services/CartService";
+import { getBookById } from "../Services/CartService";
+import {
+  addToWishList,
+  removeToWishList,
+  getAllWishlist,
+} from "../Services/WishList";
 
 export default function BookDescription() {
   const location = useLocation();
   const [isWhishlisted, setIsWishlisted] = useState(false);
   const [inStock, setInStock] = useState("ADD TO BAG");
+  const [bookQuantity, setBookQuantity] = useState(1);
+  const [message, setMessage] = useState("");
   const book = location.state.book;
 
   const whishlist = () => {
-    setIsWishlisted(!isWhishlisted);
+    console.log("whishlisting", book);
+    if (!isWhishlisted) {
+      addToWishList(book._id)
+        .then((res) => {
+          console.log(res);
+          setIsWishlisted(true);
+        })
+        .catch((err) => {
+          console.log("Error there", err.response.data.message);
+          setMessage(err.response.data.message);
+          console.log(err);
+        });
+    } else {
+      removeToWishList(book._id)
+        .then((res) => {
+          console.log(res);
+          setIsWishlisted(false);
+        })
+        .catch((err) => {
+          console.log(err);
+        });
+    }
   };
 
+  useEffect(() => {
+    getAllWishlist()
+      .then((res) => {
+        console.log(res);
+        var getBook = res.data.data[0].books.filter((elem) => {
+          console.log(elem.productId);
+          console.log(book);
+          return elem.productId == book._id;
+        });
+        if (getBook[0] != null) {
+          setIsWishlisted(true);
+          setMessage("data fetched successfull");
+        }
+      })
+      .catch((err) => {
+        console.log(err);
+      });
+  });
+
   const addToBag = () => {
-    if (book.quantity < 1) {
+    console.log("Quantity", bookQuantity);
+    if (bookQuantity < 1) {
       setInStock("Out Of Stock");
-    } else if (book.quantity === 1) {
+    } else if (bookQuantity === 1) {
       setInStock("ADD TO BAG");
+      changeQuantity("increment");
+      // setInStock("Added To Bag");
     } else {
       setInStock("Added To Bag");
     }
@@ -32,7 +83,10 @@ export default function BookDescription() {
     if (changeType === "decrement") {
       removeToCart(book._id)
         .then((res) => {
-          console.log(res);
+          getBookById(book._id).then((res) => {
+            setBookQuantity(res.data.data[0].books[0].quantity);
+            console.log("book from db", res.data.data[0].books[0].quantity);
+          });
         })
         .catch((err) => {
           console.log(err);
@@ -40,7 +94,10 @@ export default function BookDescription() {
     } else if (changeType === "increment") {
       addToCart(book._id)
         .then((res) => {
-          console.log(res);
+          getBookById(book._id).then((res) => {
+            setBookQuantity(res.data.data[0].books[0].quantity);
+            console.log("book from db", res.data.data[0].books[0].quantity);
+          });
         })
         .catch((err) => {
           console.log(err);
@@ -70,7 +127,7 @@ export default function BookDescription() {
           </div>
         </div>
       </div>
-      <div className="bookDescription-body">
+      <div className="bookDescription-body-detail">
         <div className="book-image">
           <div className="book-cover">
             <img
@@ -116,6 +173,7 @@ export default function BookDescription() {
                   display: "flex",
                   justifyContent: "center",
                   alignItems: "center",
+                  cursor: "pointer",
                 }}
                 onClick={addToBag}
               >
@@ -132,6 +190,7 @@ export default function BookDescription() {
                   display: "flex",
                   justifyContent: "space-between",
                   alignItems: "center",
+                  cursor: "pointer",
                 }}
                 onClick={addToBag}
               >
@@ -146,6 +205,7 @@ export default function BookDescription() {
                     alignItems: "center",
                     fontSize: "2.5em",
                     borderRadius: "100%",
+                    cursor: "pointer",
                   }}
                   onClick={() => changeQuantity("decrement")}
                 >
@@ -162,7 +222,7 @@ export default function BookDescription() {
                     color: "#333232",
                   }}
                 >
-                  {book.quantity}
+                  {bookQuantity}
                 </div>
                 <div
                   style={{
@@ -175,6 +235,7 @@ export default function BookDescription() {
                     color: "#333232",
                     fontSize: "2em",
                     borderRadius: "100%",
+                    cursor: "pointer",
                   }}
                   onClick={() => changeQuantity("increment")}
                 >
@@ -182,7 +243,8 @@ export default function BookDescription() {
                 </div>
               </div>
             )}
-            {isWhishlisted ? (
+
+            {isWhishlisted && message == "data fetched successfull" ? (
               <div
                 style={{
                   width: "46%",
@@ -192,13 +254,14 @@ export default function BookDescription() {
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
+                  cursor: "pointer",
                 }}
                 onClick={whishlist}
               >
-                <div style={{ marginTop: "3%" }}>
+                <div style={{ marginTop: "3%", cursor: "pointer" }}>
                   <FavoriteIcon sx={{ color: "red" }} />
                 </div>
-                <div>WHISHLISTED</div>
+                <div style={{ cursor: "pointer" }}>WHISHLISTED</div>
               </div>
             ) : (
               <div
@@ -221,7 +284,7 @@ export default function BookDescription() {
           </div>
         </div>
 
-        <div className="book-description">
+        <div className="book-description-detail">
           <h2 style={{ fontFamily: "sans-serif" }}> {book.bookName}</h2>
           <div style={{ color: "#878787", marginTop: "-2%" }}>
             by {book.author}

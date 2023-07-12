@@ -10,7 +10,7 @@
   justify-content: center;
 }
 
-.bookDescription-body {
+.bookDescription-body-detail {
   width: 78%;
   display: flex;
   margin-left: 11%;
@@ -29,7 +29,7 @@
   padding: 1em 2em;
 }
 
-.book-description {
+.book-description-detail {
   width: 69%;
   display: flex;
   flex-direction: column;

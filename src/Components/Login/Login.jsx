@@ -56,6 +56,7 @@ export default function Login() {
     userLogin(user)
       .then((res) => {
         localStorage.setItem("auth", res.data.data.Auth);
+        console.log(res.data);
         alert(res.data.message);
         navigate("/home");
       })

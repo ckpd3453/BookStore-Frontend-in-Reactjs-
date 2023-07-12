@@ -1,22 +1,140 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import Header from "../Home/Header";
 import "../Cart/Cart.css";
 import PinDropIcon from "@mui/icons-material/PinDrop";
 import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown";
 import RadioButtonCheckedIcon from "@mui/icons-material/RadioButtonChecked";
 import RadioButtonUncheckedIcon from "@mui/icons-material/RadioButtonUnchecked";
+import { useNavigate } from "react-router-dom";
+import {
+  addToCart,
+  getBookById,
+  getBooksInCart,
+  removeToCart,
+} from "../Services/CartService";
+import { addBuyerDetails } from "../Services/BuyerDetails";
+import { orderPlacedSuccessfull } from "../Services/OrderPlaced";
 
 export default function Cart() {
   const [getAddress, setGetAddress] = useState(false);
   const [getOrder, setGetOrder] = useState(false);
+  const [books, setBooks] = useState([]);
+  const [cartQuantity, setCartQuantity] = useState(0);
+  const [addressDetail, setAddressDetail] = useState(true);
+  const [customerDetails, setCustomerDetails] = useState({
+    fullName: "",
+    phone: Number,
+    address: "",
+    city: "",
+    state: "",
+  });
+  const navigate = useNavigate();
 
   const getAddressDetails = () => {
+    setAddressDetail(false);
     setGetAddress(!getAddress);
   };
 
   const getOrderSummary = () => {
-    setGetOrder(!getOrder);
+    console.log("inside order summary");
+    saveBuyersDetail();
+    setGetOrder(true);
   };
+
+  const orderPlacedSuccessful = () => {
+    orderPlacedSuccessfull()
+      .then((res) => {
+        console.log("order placed succcess", res);
+      })
+      .catch((err) => console.log(err));
+    navigate("/orderPlacedSuccessful");
+  };
+
+  const decreaseQuantity = (book) => {
+    var id = book.productId;
+    removeToCart(id)
+      .then((res) => {
+        console.log("removing", res);
+        getBookById(id).then((res) => {
+          console.log("get book", res);
+          setCartQuantity(res.data.data[0].books[0].quantity);
+          console.log("book from db", res.data.data[0].books[0].quantity);
+        });
+      })
+      .catch((err) => {
+        console.log(err);
+      });
+  };
+
+  const increaseQuantity = (book) => {
+    console.log(book);
+    var id = book.productId;
+    addToCart(id)
+      .then((res) => {
+        console.log("adding", res);
+        getBookById(id).then((res) => {
+          console.log(res);
+          setCartQuantity(res.data.data[0].books[0].quantity);
+          console.log("book from db", res.data.data[0].books[0].quantity);
+        });
+      })
+      .catch((err) => {
+        console.log(err);
+      });
+  };
+
+  const changeHandler = {
+    fullName: (e) => {
+      setCustomerDetails((prev) => ({ ...prev, fullName: e.target.value }));
+    },
+    phone: (e) => {
+      setCustomerDetails((prev) => ({ ...prev, phone: e.target.value }));
+    },
+    address: (e) => {
+      setCustomerDetails((prev) => ({ ...prev, address: e.target.value }));
+    },
+    city: (e) => {
+      setCustomerDetails((prev) => ({ ...prev, city: e.target.value }));
+    },
+    state: (e) => {
+      setCustomerDetails((prev) => ({ ...prev, state: e.target.value }));
+    },
+  };
+
+  const saveBuyersDetail = () => {
+    console.log("in saving");
+    addBuyerDetails(customerDetails)
+      .then((res) => {
+        console.log(res);
+      })
+      .catch((err) => {
+        console.log(err);
+      });
+  };
+
+  useEffect(() => {
+    getBooksInCart()
+      .then((res) => {
+        console.log("cart books", res);
+        setBooks(res.data.data);
+        if (res.data.data.length > 1) {
+          const quant = res.data.data.reduce((a, b) => {
+            return a.books[0].quantity + b.books[0].quantity;
+          });
+          setCartQuantity(quant);
+        } else {
+          setCartQuantity(1);
+        }
+      })
+      .catch((err) => {
+        console.log(err);
+      });
+  }, []);
+
+  const goToHome = () => {
+    navigate("/home");
+  };
+
   return (
     <div className="cart-container">
       <div className="bookDescription-header">
@@ -33,7 +151,9 @@ export default function Cart() {
           }}
         >
           <div style={{ display: "flex" }}>
-            <b style={{ color: "grey" }}>Home/</b>
+            <b style={{ color: "grey" }} onClick={goToHome}>
+              Home/
+            </b>
             <b style={{ fontSize: "1em" }}> My cart</b>
           </div>
         </div>
@@ -52,7 +172,7 @@ export default function Cart() {
               {" "}
               <b style={{ fontSize: "1.2em", color: "#0A0102" }}>
                 {" "}
-                My cart({})
+                My cart({cartQuantity})
               </b>
             </div>
             <div
@@ -72,109 +192,153 @@ export default function Cart() {
               <ArrowDropDownIcon sx={{ color: "grey" }} />
             </div>
           </div>
-          <div
-            style={{
-              height: "56%",
-              display: "flex",
-            }}
-          >
-            <div style={{ width: "21%" }}>Book Image</div>
-            <div style={{ width: "25%" }}>
+          <div style={{ height: "auto" }}>
+            {books.map((book) => (
               <div
                 style={{
+                  height: "56%",
                   display: "flex",
-                  justifyContent: "flex-start",
-                  height: "20%",
-                  color: "#0A0102",
+                  marginTop: "5%",
                 }}
               >
-                <b> Book Name</b>
-              </div>
-              <div
-                style={{
-                  display: "flex",
-                  justifyContent: "flex-start",
-                  height: "20%",
-                  color: "#9D9D9D",
-                }}
-              >
-                <b> Author Name</b>
-              </div>
-              <div
-                style={{
-                  display: "flex",
-                  justifyContent: "flex-start",
-                  height: "20%",
-                  color: "#0A0102",
-                }}
-              >
-                <b> Price</b>
-              </div>
-              <div style={{ display: "flex", height: "40%" }}>
                 <div
                   style={{
-                    height: "1.5em",
-                    marginTop: "15%",
-                    marginLeft: "5%",
-                    width: "46%",
-                    color: "white",
+                    width: "16%",
+                    height: "8em",
                     display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "center",
+                    padding: "10px",
                   }}
                 >
-                  <div
-                    style={{
-                      border: "1px solid #DBDBDB",
-                      color: "#DBDBDB",
-                      width: "25%",
-                      height: "100%",
-                      display: "flex",
-                      justifyContent: "space-around",
-                      alignItems: "center",
-                      fontSize: "2em",
-                      borderRadius: "100%",
-                      backgroundColor: "#DBDBDB",
-                    }}
-                  >
-                    <div style={{ marginBottom: "35%" }}>-</div>
-                  </div>
-                  <div
-                    style={{
-                      border: "1px solid #DBDBDB",
-                      width: "40%",
-                      height: "100%",
-                      display: "flex",
-                      justifyContent: "center",
-                      alignItems: "center",
-                      color: "#333232",
-                    }}
-                  >
-                    2
-                  </div>
-                  <div
-                    style={{
-                      border: "1px solid #DBDBDB",
-                      width: "25%",
-                      height: "100%",
-                      display: "flex",
-                      justifyContent: "center",
-                      alignItems: "center",
-                      color: "#333232",
-                      fontSize: "1.5em",
-                      borderRadius: "100%",
-                      backgroundColor: "#DBDBDB",
-                    }}
-                  >
-                    <div style={{ marginBottom: "30%" }}>+</div>
-                  </div>
+                  <img
+                    src={book.books[0].bookImage}
+                    alt="img"
+                    style={{ width: "80%", height: "80%" }}
+                  />
                 </div>
-                <div style={{ marginTop: "15%", marginLeft: "15%" }}>
-                  Remove
+                <div style={{ width: "25%" }}>
+                  <div
+                    style={{
+                      display: "flex",
+                      justifyContent: "flex-start",
+                      height: "20%",
+                      color: "#0A0102",
+                    }}
+                  >
+                    <b> {book.books[0].bookName}</b>
+                  </div>
+                  <div
+                    style={{
+                      display: "flex",
+                      justifyContent: "flex-start",
+                      height: "20%",
+                      color: "#9D9D9D",
+                    }}
+                  >
+                    <b> {book.books[0].author}</b>
+                  </div>
+                  <div
+                    style={{
+                      display: "flex",
+                      justifyContent: "flex-start",
+                      height: "20%",
+                      color: "#0A0102",
+                    }}
+                  >
+                    <b>Rs. {book.books[0].price}.00</b>
+                  </div>
+                  <div
+                    style={{ display: "flex", height: "40%" }}
+                    className="cart-counter"
+                  >
+                    {addressDetail ? (
+                      <>
+                        <div
+                          style={{
+                            height: "1.5em",
+                            marginTop: "15%",
+                            marginLeft: "5%",
+                            width: "46%",
+                            color: "white",
+                            display: "flex",
+                            justifyContent: "space-between",
+                            alignItems: "center",
+                          }}
+                        >
+                          <div
+                            style={{
+                              border: "1px solid #DBDBDB",
+                              color: "#DBDBDB",
+                              width: "25%",
+                              height: "100%",
+                              display: "flex",
+                              justifyContent: "space-around",
+                              alignItems: "center",
+                              fontSize: "2em",
+                              borderRadius: "100%",
+                              backgroundColor: "#DBDBDB",
+                            }}
+                          >
+                            <div
+                              style={{ marginBottom: "35%", color: "#333232" }}
+                              onClick={() => decreaseQuantity(book.books[0])}
+                              className="decease-quant"
+                            >
+                              -
+                            </div>
+                          </div>
+                          <div
+                            style={{
+                              border: "1px solid #DBDBDB",
+                              width: "40%",
+                              height: "100%",
+                              display: "flex",
+                              justifyContent: "center",
+                              alignItems: "center",
+                              color: "#333232",
+                            }}
+                          >
+                            {cartQuantity}
+                          </div>
+                          <div
+                            style={{
+                              border: "1px solid #DBDBDB",
+                              width: "25%",
+                              height: "100%",
+                              display: "flex",
+                              justifyContent: "center",
+                              alignItems: "center",
+                              color: "#333232",
+                              fontSize: "1.5em",
+                              borderRadius: "100%",
+                              backgroundColor: "#DBDBDB",
+                            }}
+                          >
+                            <div
+                              style={{ marginBottom: "30%" }}
+                              onClick={() => increaseQuantity(book.books[0])}
+                              className="increase-quant"
+                            >
+                              +
+                            </div>
+                          </div>
+                        </div>
+                        <div style={{ marginTop: "15%", marginLeft: "15%" }}>
+                          Remove
+                        </div>
+                      </>
+                    ) : (
+                      <>
+                        <div>
+                          <b>Qty: {cartQuantity}</b>
+                        </div>
+                      </>
+                    )}
+                  </div>
                 </div>
               </div>
-            </div>
+            ))}
           </div>
+
           <div style={{ height: "20%" }}>
             {!getAddress && (
               <button
@@ -186,6 +350,7 @@ export default function Cart() {
                   backgroundColor: "#3371B5",
                   color: "white",
                   border: "1px solid #3371B5",
+                  marginBottom: "1em",
                 }}
                 onClick={getAddressDetails}
               >
@@ -233,6 +398,7 @@ export default function Cart() {
                   </div>
                 )}
               </div>
+
               <div
                 style={{
                   display: "flex",
@@ -257,7 +423,12 @@ export default function Cart() {
                     <input
                       type="text"
                       placeholder="Chandra"
-                      style={{ width: "100%", height: "3em", padding: "0 5%" }}
+                      onChange={changeHandler.fullName}
+                      style={{
+                        width: "100%",
+                        height: "3em",
+                        padding: "0 5%",
+                      }}
                     />
                   </div>
                 </div>
@@ -275,17 +446,24 @@ export default function Cart() {
                   <div style={{ width: "100%" }}>
                     <input
                       type="number"
-                      name=""
-                      id=""
+                      onChange={changeHandler.phone}
                       placeholder="7005268726"
-                      style={{ width: "100%", height: "3em", padding: "0 5%" }}
+                      style={{
+                        width: "100%",
+                        height: "3em",
+                        padding: "0 5%",
+                      }}
                     />
                   </div>
                 </div>
               </div>
               <div>
                 <div
-                  style={{ display: "flex", marginTop: "2%", marginLeft: "2%" }}
+                  style={{
+                    display: "flex",
+                    marginTop: "2%",
+                    marginLeft: "2%",
+                  }}
                 >
                   <RadioButtonCheckedIcon sx={{ color: "#A03037" }} />
                   <div>
@@ -322,7 +500,12 @@ export default function Cart() {
                       Accusantium deserunt recusandae ex eaque. Incidunt aliquid
                       sit veritatis asperiores. Autem neque qui dolorum enim
                       dolor necessitatibus, possimus fugiat maiores vero maxime!"
-                      style={{ width: "71.5%", height: "6em", marginTop: "1%" }}
+                      style={{
+                        width: "71.5%",
+                        height: "6em",
+                        marginTop: "1%",
+                      }}
+                      onChange={changeHandler.address}
                     />
                   </div>
                   <div style={{ display: "flex", marginBottom: "2%" }}>
@@ -342,6 +525,7 @@ export default function Cart() {
                         type="text"
                         name=""
                         id=""
+                        onChange={changeHandler.city}
                         placeholder="Bengaluru"
                         style={{
                           width: "100%",
@@ -366,6 +550,7 @@ export default function Cart() {
                         type="text"
                         name=""
                         id=""
+                        onChange={changeHandler.state}
                         placeholder="Karnataka"
                         style={{
                           width: "100%",
@@ -377,6 +562,7 @@ export default function Cart() {
                   </div>
                 </div>
               </div>
+
               {!getOrder && (
                 <>
                   <div>
@@ -444,7 +630,8 @@ export default function Cart() {
               <b> Address Details</b>
             </div>
           )}
-
+        </div>
+        <div style={{ width: "70%", height: "auto" }}>
           {getOrder ? (
             <div
               style={{
@@ -467,60 +654,73 @@ export default function Cart() {
                   Order summary
                 </b>
               </div>
-              <div
-                style={{
-                  height: "56%",
-                  display: "flex",
-                }}
-              >
-                <div style={{ width: "21%" }}>Book Image</div>
-                <div style={{ width: "25%" }}>
+              {books.map((book) => (
+                <>
                   <div
                     style={{
+                      height: "56%",
                       display: "flex",
-                      justifyContent: "flex-start",
-                      height: "20%",
-                      color: "#0A0102",
                     }}
                   >
-                    <b> Book Name</b>
+                    <div
+                      style={{
+                        width: "21%",
+                        display: "flex",
+                        justifyContent: "center",
+                      }}
+                    >
+                      <img src={book.books[0].bookImage} alt="img" />
+                    </div>
+                    <div style={{ width: "25%" }}>
+                      <div
+                        style={{
+                          display: "flex",
+                          justifyContent: "flex-start",
+                          height: "20%",
+                          color: "#0A0102",
+                        }}
+                      >
+                        <b> {book.books[0].bookName}</b>
+                      </div>
+                      <div
+                        style={{
+                          display: "flex",
+                          justifyContent: "flex-start",
+                          height: "20%",
+                          color: "#9D9D9D",
+                        }}
+                      >
+                        <b>{book.books[0].author}</b>
+                      </div>
+                      <div
+                        style={{
+                          display: "flex",
+                          justifyContent: "flex-start",
+                          height: "20%",
+                          color: "#0A0102",
+                        }}
+                      >
+                        <b>Rs. {book.books[0].price}.00</b>
+                      </div>
+                    </div>
                   </div>
-                  <div
-                    style={{
-                      display: "flex",
-                      justifyContent: "flex-start",
-                      height: "20%",
-                      color: "#9D9D9D",
-                    }}
-                  >
-                    <b> Author Name</b>
+                  <div style={{ width: "100%" }}>
+                    <button
+                      style={{
+                        color: "white",
+                        backgroundColor: "#3371B5",
+                        border: "1px solid #3371B5",
+                        height: "2em",
+                        width: "15%",
+                        marginLeft: "76%",
+                      }}
+                      onClick={orderPlacedSuccessful}
+                    >
+                      Checkout
+                    </button>
                   </div>
-                  <div
-                    style={{
-                      display: "flex",
-                      justifyContent: "flex-start",
-                      height: "20%",
-                      color: "#0A0102",
-                    }}
-                  >
-                    <b> Price</b>
-                  </div>
-                </div>
-              </div>
-              <div style={{ width: "100%" }}>
-                <button
-                  style={{
-                    color: "white",
-                    backgroundColor: "#3371B5",
-                    border: "1px solid #3371B5",
-                    height: "2em",
-                    width: "15%",
-                    marginLeft: "76%",
-                  }}
-                >
-                  Checkout
-                </button>
-              </div>
+                </>
+              ))}
             </div>
           ) : (
             <div

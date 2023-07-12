@@ -3,8 +3,14 @@ import SearchIcon from "@mui/icons-material/Search";
 import Person2OutlinedIcon from "@mui/icons-material/Person2Outlined";
 import ShoppingCartOutlinedIcon from "@mui/icons-material/ShoppingCartOutlined";
 import "../Home/Home.css";
+import { useNavigate } from "react-router-dom";
+import education from "../../Assets/education.png";
 
 export default function Header() {
+  const navigate = useNavigate();
+  const goToCart = () => {
+    navigate("/cart");
+  };
   return (
     <div>
       <div
@@ -16,7 +22,7 @@ export default function Header() {
         }}
       >
         <img
-          src="https://public-v2links.adobecc.com/d096df37-ca37-4026-553f-8cfa6bec09ec/component?params=component_id%3A34a6421f-a569-47b8-bc37-078211517464&params=version%3A0&token=1680190794_da39a3ee_b225cc53be9b6a1df4baafa163d34b312ae68fce&api_key=CometServer1"
+          src={education}
           alt=""
           style={{ marginLeft: "10%", height: "50%", marginRight: ".3%" }}
         />
@@ -62,6 +68,7 @@ export default function Header() {
             marginLeft: "5%",
             marginTop: ".3%",
           }}
+          onClick={goToCart}
         >
           <ShoppingCartOutlinedIcon />
           Cart

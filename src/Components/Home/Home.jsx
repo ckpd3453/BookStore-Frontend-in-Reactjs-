@@ -5,22 +5,22 @@ import DropDown from "./DropDown";
 import Header from "./Header";
 import { useNavigate } from "react-router-dom";
 import Rating from "../Rating/Rating";
-// import Pagination from "../Pagination/Pagination";
+import Pagination from "../Pagination/Pagination";
 
 export default function Home() {
   const [books, setBooks] = useState([]);
-  // const [currentPage, setCurrentPage] = useState(1);
+  const [currentPage, setCurrentPage] = useState(1);
   const navigation = useNavigate();
   useEffect(() => {
-    getAllBook()
+    getAllBook(1)
       .then((res) => {
         console.log(res);
-        setBooks(res.data.data);
+        setBooks(res.data.data.books);
       })
       .catch((err) => console.log(err));
   }, []);
 
-  // let PageSize = 12;
+  let PageSize = 12;
   // const currentTableData = useMemo(() => {
   //   const firstPageIndex = (currentPage - 1) * PageSize;
   //   const lastPageIndex = firstPageIndex + PageSize;
@@ -119,19 +119,19 @@ export default function Home() {
             </div>
           ))}
         </div>
+        <div className="pagination-container">
+          <Pagination
+            className="pagination-bar"
+            currentPage={currentPage}
+            totalCount={books.length}
+            pageSize={PageSize}
+            onPageChange={(page) => {
+              setCurrentPage(page);
+            }}
+          />
+        </div>
       </div>
-      <div className="pagination-container">
-        Pagination Component
-        {/* <Pagination
-          className="pagination-bar"
-          currentPage={currentPage}
-          totalCount={books.length}
-          pageSize={PageSize}
-          onPageChange={(page) => {
-            setCurrentPage(page);
-          }}
-        /> */}
-      </div>
+
       <div className="home-footer">
         <p style={{ marginLeft: "11%" }}>
           copyright © 2020, Bookstore Private Limited. All Rights Reserved

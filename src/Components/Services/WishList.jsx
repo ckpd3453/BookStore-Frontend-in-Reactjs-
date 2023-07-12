@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const baseUrl = "http://localhost:5000/api/v1/cart";
+const baseUrl = "http://localhost:5000/api/v1/wishlist";
 
 const headerConfig = {
   headers: {
@@ -8,22 +8,17 @@ const headerConfig = {
   },
 };
 
-export const addToCart = (id) => {
+export const addToWishList = (id) => {
   const response = axios.post(`${baseUrl}/${id}`, "", headerConfig);
   return response;
 };
 
-export const removeToCart = (id) => {
+export const removeToWishList = (id) => {
   const response = axios.delete(`${baseUrl}/${id}`, headerConfig);
   return response;
 };
 
-export const getBooksInCart = () => {
+export const getAllWishlist = () => {
   const response = axios.get(`${baseUrl}`, headerConfig);
-  return response;
-};
-
-export const getBookById = (id) => {
-  const response = axios.get(`${baseUrl}/${id}`, headerConfig);
   return response;
 };
